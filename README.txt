@@ -212,8 +212,8 @@ Alerts.Count
 MAP [1-3]
 ---------
 Map.IsFetched
-Map.%i.Area			            (image path, same as Layer)
-Map.%i.Layer			        (image path, same as Area)
+Map.%i.Area                     (image path, same as Layer)
+Map.%i.Layer                    (image path, same as Area)
 Map.%i.Heading                  (image label)
 
 
