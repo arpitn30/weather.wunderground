@@ -1,3 +1,6 @@
+v5.0.1
+- remove test key
+
 v5.0.0
 - reanimate
 

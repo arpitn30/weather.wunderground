@@ -566,9 +566,9 @@ def properties(data,loc,locid):
     num = 1
 #    if animate == 'true':
 #        num = 8
-    url1 = 'http://api.wunderground.com/api/7c4ed40be2a4c69e/animatedsatellite/image.gif?lat=%s&lon=%s&radius=%i&width=768&height=768&key=sat_ir4&basemap=1&timelabel.x=20&timelabel.y=20&num=%i&delay=50&borders=1&gtt=107&smooth=1' % (lat,lon,rad,num)
-    url2 = 'http://api.wunderground.com/api/7c4ed40be2a4c69e/animatedsatellite/image.gif?lat=%s&lon=%s&radius=%i&width=768&height=768&key=sat_vis&basemap=1&timelabel.x=20&timelabel.y=20&num=%i&delay=50&borders=1&gtt=107&smooth=1' % (lat,lon,rad,num)
-    url3 = 'http://api.wunderground.com/api/7c4ed40be2a4c69e/animatedradar/image.gif?centerlat=%s&centerlon=%s&radius=%i&width=768&height=768&newmaps=1&timelabel=1&timelabel.y=20&num=%i&delay=50&smooth=1&noclutter=1' % (lat,lon,rad,num)
+    url1 = 'http://api.wunderground.com/api/%s/animatedsatellite/image.gif?lat=%s&lon=%s&radius=%i&width=768&height=768&key=sat_ir4&basemap=1&timelabel.x=20&timelabel.y=20&num=%i&delay=50&borders=1&gtt=107&smooth=1' % (API,lat,lon,rad,num)
+    url2 = 'http://api.wunderground.com/api/%s/animatedsatellite/image.gif?lat=%s&lon=%s&radius=%i&width=768&height=768&key=sat_vis&basemap=1&timelabel.x=20&timelabel.y=20&num=%i&delay=50&borders=1&gtt=107&smooth=1' % (API,lat,lon,rad,num)
+    url3 = 'http://api.wunderground.com/api/%s/animatedradar/image.gif?centerlat=%s&centerlon=%s&radius=%i&width=768&height=768&newmaps=1&timelabel=1&timelabel.y=20&num=%i&delay=50&smooth=1&noclutter=1' % (API,lat,lon,rad,num)
     log('map url1: %s' % url1)
     log('map url2: %s' % url2)
     log('map url3: %s' % url3)

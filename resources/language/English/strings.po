@@ -181,15 +181,15 @@ msgstr ""
 #empty strings from id 32517 to 32520
 
 msgctxt "#32521"
-msgid "Radar"
-msgstr ""
-
-msgctxt "#32522"
 msgid "Infrared Satellite"
 msgstr ""
 
-msgctxt "#32523"
+msgctxt "#32522"
 msgid "Visual Satellite"
+msgstr ""
+
+msgctxt "#32523"
+msgid "Radar"
 msgstr ""
 
 #empty strings from id 32524 to 32600
