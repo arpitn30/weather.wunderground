@@ -19,7 +19,7 @@
 import os, sys, socket, unicodedata, urllib2, time, gzip
 from datetime import date
 from StringIO import StringIO
-import xbmc, xbmcgui, xbmcaddon
+import xbmc, xbmcgui, xbmcaddon, xbmcvfs
 import json
 
 ADDON      = xbmcaddon.Addon()
@@ -29,6 +29,7 @@ CWD        = ADDON.getAddonInfo('path').decode("utf-8")
 VERSION    = ADDON.getAddonInfo('version')
 LANGUAGE   = ADDON.getLocalizedString
 RESOURCE   = xbmc.translatePath( os.path.join( CWD, 'resources', 'lib' ).encode("utf-8") ).decode("utf-8")
+PROFILE    = xbmc.translatePath(ADDON.getAddonInfo('profile')).decode('utf-8')
 API        = ADDON.getSetting('API')
 
 sys.path.append(RESOURCE)
@@ -85,8 +86,7 @@ def refresh_locations():
     set_property('Locations', str(locations))
     log('available locations: %s' % str(locations))
 
-def find_location(loc):
-    url = WUNDERGROUND_LOC % urllib2.quote(loc)
+def get_data(url):
     try:
         req = urllib2.urlopen(url)
         response = req.read()
@@ -101,7 +101,8 @@ def location(string):
     log('location: %s' % string)
     loc = unicodedata.normalize('NFKD', unicode(string, 'utf-8')).encode('ascii','ignore')
     log('searching for location: %s' % loc)
-    query = find_location(loc)
+    url = WUNDERGROUND_LOC % urllib2.quote(loc)
+    query = get_data(url)
     log('location data: %s' % query)
     data = parse_data(query)
     if data != '' and data.has_key('RESULTS'):
@@ -558,29 +559,47 @@ def properties(data,loc,locid):
         set_property('Alerts.Count' , '0')
 # map properties
     set_property('Map.IsFetched', 'true')
+    mapdir = xbmc.translatePath(os.path.join(PROFILE, 'maps'))
+    if not xbmcvfs.exists(mapdir):
+        xbmcvfs.mkdir(mapdir)
+    dirs,items = xbmcvfs.listdir(mapdir)
+    for item in items:
+        xbmcvfs.delete(os.path.join(mapdir,item))
     lat = data['current_observation']['display_location']['latitude']
     lon = data['current_observation']['display_location']['longitude']
     zoom = int(ADDON.getSetting('Zoom'))
     rad = int(1000/zoom)
-#    animate = ADDON.getSetting('Animated')
+    animate = ADDON.getSetting('Animated')
     num = 1
-#    if animate == 'true':
-#        num = 8
-    url1 = 'http://api.wunderground.com/api/%s/animatedsatellite/image.gif?lat=%s&lon=%s&radius=%i&width=768&height=768&key=sat_ir4&basemap=1&timelabel.x=20&timelabel.y=20&num=%i&delay=50&borders=1&gtt=107&smooth=1' % (API,lat,lon,rad,num)
-    url2 = 'http://api.wunderground.com/api/%s/animatedsatellite/image.gif?lat=%s&lon=%s&radius=%i&width=768&height=768&key=sat_vis&basemap=1&timelabel.x=20&timelabel.y=20&num=%i&delay=50&borders=1&gtt=107&smooth=1' % (API,lat,lon,rad,num)
-    url3 = 'http://api.wunderground.com/api/%s/animatedradar/image.gif?centerlat=%s&centerlon=%s&radius=%i&width=768&height=768&newmaps=1&timelabel=1&timelabel.y=20&num=%i&delay=50&smooth=1&noclutter=1' % (API,lat,lon,rad,num)
+    ext = '.png'
+    if animate == 'true':
+        num = 8
+        ext = '.gif'
+    url1 = 'http://api.wunderground.com/api/%s/animatedsatellite/image%s?lat=%s&lon=%s&radius=%i&width=768&height=768&key=sat_ir4&basemap=1&timelabel.x=20&timelabel.y=20&num=%i&delay=50&borders=1&gtt=107&smooth=1' % (API, ext, lat, lon, rad, num)
+    url2 = 'http://api.wunderground.com/api/%s/animatedsatellite/image%s?lat=%s&lon=%s&radius=%i&width=768&height=768&key=sat_vis&basemap=1&timelabel.x=20&timelabel.y=20&num=%i&delay=50&borders=1&gtt=107&smooth=1' % (API, ext, lat, lon, rad, num)
+    url3 = 'http://api.wunderground.com/api/%s/animatedradar/image%s?centerlat=%s&centerlon=%s&radius=%i&width=768&height=768&newmaps=1&timelabel=1&timelabel.y=20&num=%i&delay=50&smooth=1&noclutter=1' % (API, ext, lat, lon, rad, num)
     log('map url1: %s' % url1)
     log('map url2: %s' % url2)
     log('map url3: %s' % url3)
+    data1 = get_data(url1)
+    data2 = get_data(url2)
+    data3 = get_data(url3)
+    stamp = int(time.time())
+    map1 = os.path.join(mapdir,str(stamp + 1) + ext)
+    map2 = os.path.join(mapdir,str(stamp + 2) + ext)
+    map3 = os.path.join(mapdir,str(stamp + 3) + ext)
+    xbmcvfs.File(map1, 'w').write(data1)
+    xbmcvfs.File(map2, 'w').write(data2)
+    xbmcvfs.File(map3, 'w').write(data3)
     set_property('Map.1.Heading', LANGUAGE(32521))
-    set_property('Map.1.Area', url1)
-    set_property('Map.1.Layer', url1)
+    set_property('Map.1.Area', map1)
+    set_property('Map.1.Layer', map1)
     set_property('Map.2.Heading', LANGUAGE(32522))
-    set_property('Map.2.Area', url2)
-    set_property('Map.2.Layer', url2)
+    set_property('Map.2.Area', map2)
+    set_property('Map.2.Layer', map2)
     set_property('Map.3.Heading', LANGUAGE(32523))
-    set_property('Map.3.Area', url3)
-    set_property('Map.3.Layer', url3)
+    set_property('Map.3.Area', map3)
+    set_property('Map.3.Layer', map3)
 
 log('version %s started: %s' % (VERSION, sys.argv))
 log('lang: %s'    % LOCALIZE)

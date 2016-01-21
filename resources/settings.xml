@@ -33,7 +33,7 @@
 		<setting id="Location5id" label="32132" type="text" subsetting="true" enable="!eq(-3,)" default=""/>
 		<setting type="sep"/>
 		<setting id="Zoom" label="32125" type="slider" option="int" range="1,100"  default="10"/>
-		<!--setting id="Animated" label="32126" type="bool" default="true"/-->
+		<setting id="Animated" label="32126" type="bool" default="true"/>
 		<setting id="Weekend" label="32121" type="enum" lvalues="32122|32123|32124" default="0"/>
 		<setting type="sep"/>
 		<setting id="Debug" label="32120" type="bool" default="false"/>

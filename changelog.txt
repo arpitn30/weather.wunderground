@@ -1,5 +1,5 @@
 v5.0.1
-- remove test key
+- download maps instead of providing remote url
 
 v5.0.0
 - reanimate
