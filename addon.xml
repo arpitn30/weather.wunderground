@@ -2,6 +2,7 @@
 <addon id="weather.wunderground" name="Weather Underground" version="5.0.2" provider-name="ronie">
 	<requires>
 		<import addon="xbmc.python" version="2.24.0"/>
+		<import addon="script.module.simplejson" version="3.3.0"/>
 	</requires>
 	<extension point="xbmc.python.weather" library="default.py"/>
 	<extension point="xbmc.addon.metadata">
