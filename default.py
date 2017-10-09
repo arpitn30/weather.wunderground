@@ -16,21 +16,31 @@
 # *  http://www.gnu.org/copyleft/gpl.html
 
 
-import os, sys, socket, unicodedata, urllib2, time, gzip
+import os, sys, socket, unicodedata, time, gzip
+if sys.version_info[0] >= 3:
+    import urllib.request, urllib.error, urllib.parse
+    from io import StringIO
+else:
+    import urllib2
+    from StringIO import StringIO
 from datetime import date
-from StringIO import StringIO
 import xbmc, xbmcgui, xbmcaddon, xbmcvfs
 import json
 
 ADDON      = xbmcaddon.Addon()
 ADDONNAME  = ADDON.getAddonInfo('name')
 ADDONID    = ADDON.getAddonInfo('id')
-CWD        = ADDON.getAddonInfo('path').decode("utf-8")
 VERSION    = ADDON.getAddonInfo('version')
 LANGUAGE   = ADDON.getLocalizedString
-RESOURCE   = xbmc.translatePath( os.path.join( CWD, 'resources', 'lib' ).encode("utf-8") ).decode("utf-8")
-PROFILE    = xbmc.translatePath(ADDON.getAddonInfo('profile')).decode('utf-8')
 API        = ADDON.getSetting('API')
+if sys.version_info[0] >= 3:
+    CWD        = ADDON.getAddonInfo('path')
+    RESOURCE   = xbmc.translatePath( os.path.join( CWD, 'resources', 'lib' ).encode("utf-8") )
+    PROFILE    = xbmc.translatePath(ADDON.getAddonInfo('profile'))
+else:
+    CWD        = ADDON.getAddonInfo('path').decode("utf-8")
+    RESOURCE   = xbmc.translatePath( os.path.join( CWD, 'resources', 'lib' ).encode("utf-8") ).decode("utf-8")
+    PROFILE    = xbmc.translatePath(ADDON.getAddonInfo('profile')).decode('utf-8')
 
 sys.path.append(RESOURCE)
 
@@ -46,7 +56,10 @@ WEATHER_ICON     = '%s.png'
 WEATHER_WINDOW   = xbmcgui.Window(12600)
 LOCALIZE         = xbmc.getLanguage().lower()
 SPEEDUNIT        = xbmc.getRegion('speedunit')
-TEMPUNIT         = unicode(xbmc.getRegion('tempunit'),encoding='utf-8')
+if sys.version_info[0] >= 3:
+    TEMPUNIT     = str(xbmc.getRegion('tempunit'))
+else:
+    TEMPUNIT     = unicode(xbmc.getRegion('tempunit'),encoding='utf-8')
 TIMEFORMAT       = xbmc.getRegion('meridiem')
 DATEFORMAT       = xbmc.getRegion('dateshort')
 MAXDAYS          = 6
@@ -66,8 +79,9 @@ def recode(alert): # workaround: wunderground provides a corrupt alerts message
 
 def log(txt):
     if DEBUG == 'true':
-        if isinstance (txt,str):
-            txt = txt.decode("utf-8")
+        if sys.version_info.major < 3:
+            if isinstance (txt,str):
+                txt = txt.decode("utf-8")
         message = u'%s: %s' % (ADDONID, txt)
         xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)
 
@@ -88,7 +102,10 @@ def refresh_locations():
 
 def get_data(url):
     try:
-        req = urllib2.urlopen(url)
+        if sys.version_info.major >= 3:
+            req = urllib2.urlopen(url)
+        else:
+            req = urllib.request.urlopen(url)
         response = req.read()
         req.close()
     except:
@@ -99,13 +116,18 @@ def location(string):
     locs   = []
     locids = []
     log('location: %s' % string)
-    loc = unicodedata.normalize('NFKD', unicode(string, 'utf-8')).encode('ascii','ignore')
-    log('searching for location: %s' % loc)
-    url = WUNDERGROUND_LOC % urllib2.quote(loc)
+    if sys.version_info[0] >= 3:
+        loc = unicodedata.normalize('NFKD', str(string)).encode('ascii','ignore')
+        log('searching for location: %s' % loc)
+        url = WUNDERGROUND_LOC % urllib.parse.quote(loc)
+    else:
+        loc = unicodedata.normalize('NFKD', unicode(string, 'utf-8')).encode('ascii','ignore')
+        log('searching for location: %s' % loc)
+        url = WUNDERGROUND_LOC % urllib2.quote(loc)
     query = get_data(url)
     log('location data: %s' % query)
     data = parse_data(query)
-    if data != '' and data.has_key('RESULTS'):
+    if data != '' and 'RESULTS' in data:
         for item in data['RESULTS']:
             location   = item['name']
             locationid = item['l'][3:]
@@ -125,7 +147,7 @@ def geoip():
             log('geoip download failed')
     log('geoip data: %s' % query)
     data = parse_data(query)
-    if data != '' and data.has_key('location'):
+    if data != '' and 'location' in data:
         location   = data['location']['city']
         locationid = data['location']['l'][3:]
         ADDON.setSetting('Location1', location)
@@ -154,7 +176,7 @@ def forecast(loc,locid):
             log('weather download failed')
     log('forecast data: %s' % query)
     data = parse_data(query)
-    if data != '' and data.has_key('response') and not data['response'].has_key('error'):
+    if data != '' and 'response' in data and 'error' not in data['response']:
         properties(data,loc,locid)
     else:
         clear()
@@ -261,8 +283,12 @@ def properties(data,loc,locid):
 # today properties
     set_property('Today.IsFetched'                     , 'true')
     if TIMEFORMAT != '/':
-        AM = unicode(TIMEFORMAT.split('/')[0],encoding='utf-8')
-        PM = unicode(TIMEFORMAT.split('/')[1],encoding='utf-8')
+        if sys.version_info.major >= 3:
+            AM = str(TIMEFORMAT.split('/')[0])
+            PM = str(TIMEFORMAT.split('/')[1])
+        else:
+            AM = unicode(TIMEFORMAT.split('/')[0],encoding='utf-8')
+            PM = unicode(TIMEFORMAT.split('/')[1],encoding='utf-8')
         hour = int(data['moon_phase']['sunrise']['hour']) % 24
         isam = (hour >= 0) and (hour < 12)
         if isam:
